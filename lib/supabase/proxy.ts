@@ -31,8 +31,12 @@ export async function updateSession(request: NextRequest) {
   const isLoggedIn = !!data?.claims;
 
   const path = request.nextUrl.pathname;
-  // /login and the tenant portal (/t/...) are open to people who are not signed in.
-  const isPublic = path.startsWith("/login") || path.startsWith("/t/");
+  // Login, password reset, email-link handling and the tenant portal are open to visitors.
+  const isPublic =
+    path.startsWith("/login") ||
+    path.startsWith("/t/") ||
+    path.startsWith("/auth/") ||
+    path.startsWith("/forgot-password");
 
   if (!isLoggedIn && !isPublic) {
     const url = request.nextUrl.clone();

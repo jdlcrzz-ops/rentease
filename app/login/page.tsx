@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { signIn, signUp } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string; message?: string }> };
@@ -40,8 +41,18 @@ async function LoginForm({ searchParams }: Props) {
             required
             minLength={6}
           />
-          <span>Password (6+ characters)</span>
+          <span>Password</span>
         </label>
+
+        <div className="-mt-2 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-semibold"
+            style={{ color: "var(--md-primary)" }}
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <button formAction={signIn} className="md-btn md-btn-filled md-btn-block">
           Sign in

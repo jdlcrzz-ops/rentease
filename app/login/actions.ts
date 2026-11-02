@@ -15,6 +15,11 @@ export async function signIn(formData: FormData) {
 }
 
 export async function signUp(formData: FormData) {
+  if (String(formData.get("password") ?? "").length < 8)
+    redirect(
+      `/login?error=${encodeURIComponent("Please use a password with at least 8 characters.")}`
+    );
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email: String(formData.get("email") ?? ""),
