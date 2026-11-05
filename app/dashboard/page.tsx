@@ -75,9 +75,12 @@ async function Dashboard({ searchParams }: Props) {
 
   return (
     <main className="md-page">
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <span className="md-title">RentEase</span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Link href="/reminders" className="md-btn md-btn-tonal md-btn-sm">
+            Reminders
+          </Link>
           <Link href="/bills" className="md-btn md-btn-tonal md-btn-sm">
             Bills
           </Link>
