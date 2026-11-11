@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/subscription";
 import { signOut } from "../login/actions";
 import { createBusiness, createProperty } from "./actions";
 
@@ -33,6 +34,11 @@ async function Dashboard({ searchParams }: Props) {
     .select("id, name")
     .limit(1)
     .maybeSingle();
+
+  // Trial / subscription: lock the app when it has ended
+  const access = business ? await getAccess(supabase, business.id) : null;
+  if (access && !access.has_access) redirect("/billing");
+  const { data: isAdmin } = await supabase.rpc("is_platform_admin");
 
   // Properties plus simple bed counts
   const { data: properties } = business
@@ -78,6 +84,11 @@ async function Dashboard({ searchParams }: Props) {
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <span className="md-title">RentEase</span>
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {isAdmin === true && (
+            <Link href="/admin" className="md-btn md-btn-outlined md-btn-sm">
+              Admin
+            </Link>
+          )}
           <Link href="/reminders" className="md-btn md-btn-tonal md-btn-sm">
             Reminders
           </Link>
@@ -94,6 +105,25 @@ async function Dashboard({ searchParams }: Props) {
       </header>
 
       {error && <p className="md-banner-error mb-4">{error}</p>}
+
+      {access?.status === "trialing" && (
+        <p className={`${access.days_left <= 7 ? "md-banner-warn" : "md-banner-ok"} mb-4`}>
+          Free trial: {access.days_left} day{access.days_left === 1 ? "" : "s"} left.{" "}
+          <Link href="/billing" className="md-link">
+            Plans and billing
+          </Link>
+        </p>
+      )}
+      {access?.status === "active" && (access.in_grace || access.days_left <= 5) && (
+        <p className="md-banner-warn mb-4">
+          {access.in_grace
+            ? "Your subscription payment is overdue. Please pay to keep access."
+            : `Your subscription ends in ${access.days_left} day${access.days_left === 1 ? "" : "s"}.`}{" "}
+          <Link href="/billing" className="md-link">
+            Billing
+          </Link>
+        </p>
+      )}
 
       {business ? (
         <div className="md-stack" style={{ gap: 24 }}>

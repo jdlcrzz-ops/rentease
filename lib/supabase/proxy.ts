@@ -33,6 +33,7 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   // Login, password reset, email-link handling and the tenant portal are open to visitors.
   const isPublic =
+    path === "/" ||
     path.startsWith("/login") ||
     path.startsWith("/t/") ||
     path.startsWith("/auth/") ||
@@ -40,6 +41,14 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/signup") ||
     path.startsWith("/privacy") ||
     path.startsWith("/terms");
+
+  // People who are already signed in go straight to their dashboard
+  if (isLoggedIn && path === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   if (!isLoggedIn && !isPublic) {
     const url = request.nextUrl.clone();

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 import { LEGAL } from "@/lib/legal";
+import { PRICING } from "@/lib/pricing";
 
 export const metadata: Metadata = { title: "Terms of Service" };
 
@@ -64,8 +65,12 @@ export default function TermsPage() {
 
       <h2>6. Fees</h2>
       <p>
-        [Describe your pricing here, for example a monthly subscription per
-        property, any free trial, how you charge, and how to cancel.]
+        {LEGAL.productName} starts with a {PRICING.trialDays}-day free trial. After
+        the trial, the price is PHP {PRICING.pricePerProperty} per property per
+        month, or the price shown on your Billing page. You pay monthly by the
+        methods shown there. If a payment is late, access is paused after a
+        {" "}{PRICING.graceDays}-day grace period. Your data is kept while your access
+        is paused. You can stop at any time. [State your refund policy here.]
       </p>
 
       <h2>7. Acceptable use</h2>

@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/subscription";
 
 // Returns the logged-in user and their business, or sends them to the right page.
-export async function requireOrg() {
+export async function requireOrg(options: { allowLocked?: boolean } = {}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,7 +18,17 @@ export async function requireOrg() {
     .maybeSingle();
   if (!org) redirect("/dashboard");
 
-  return { supabase, user, orgId: org.id as string, orgName: org.name as string };
+  // When the free trial or subscription has ended, send the owner to /billing
+  const access = await getAccess(supabase, org.id as string);
+  if (!options.allowLocked && access && !access.has_access) redirect("/billing");
+
+  return {
+    supabase,
+    user,
+    orgId: org.id as string,
+    orgName: org.name as string,
+    access,
+  };
 }
 
 export function formatPeso(amount: number | string | null | undefined) {
