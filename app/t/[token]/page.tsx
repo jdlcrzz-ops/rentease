@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -192,7 +193,10 @@ async function Portal({ params, searchParams }: Props) {
       </section>
 
       <p className="md-muted mt-8 text-xs">
-        This page is private to you. Please don&apos;t share the link.
+        This page is private to you. Please don&apos;t share the link.{" "}
+        <Link href="/privacy" className="md-link">
+          Privacy Notice
+        </Link>
       </p>
     </main>
   );

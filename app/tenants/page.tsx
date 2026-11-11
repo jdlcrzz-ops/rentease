@@ -5,8 +5,10 @@ import { connection } from "next/server";
 import { requireOrg } from "@/lib/org";
 import {
   addTenant,
+  archiveTenant,
   regeneratePortalLink,
   savePaymentInstructions,
+  updateTenant,
 } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string; message?: string }> };
@@ -39,7 +41,9 @@ async function Tenants({ searchParams }: Props) {
 
   const { data: tenants } = await supabase
     .from("tenants")
-    .select("id, full_name, phone, email, portal_token")
+    .select(
+      "id, full_name, phone, email, portal_token, emergency_contact_name, emergency_contact_phone"
+    )
     .eq("archived", false)
     .order("full_name");
 
@@ -126,6 +130,79 @@ async function Tenants({ searchParams }: Props) {
               </div>
 
               <details className="mt-4">
+                <summary className="md-btn md-btn-outlined md-btn-sm">
+                  Edit tenant
+                </summary>
+                <form action={updateTenant} className="md-stack mt-3">
+                  <input type="hidden" name="tenant_id" value={t.id} />
+                  <label className="md-field">
+                    <input
+                      name="full_name"
+                      placeholder=" "
+                      defaultValue={t.full_name}
+                      required
+                    />
+                    <span>Full name</span>
+                  </label>
+                  <label className="md-field">
+                    <input
+                      name="phone"
+                      type="tel"
+                      placeholder=" "
+                      defaultValue={t.phone ?? ""}
+                    />
+                    <span>Mobile number</span>
+                  </label>
+                  <label className="md-field">
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder=" "
+                      defaultValue={t.email ?? ""}
+                    />
+                    <span>Email</span>
+                  </label>
+                  <label className="md-field">
+                    <input
+                      name="emergency_contact_name"
+                      placeholder=" "
+                      defaultValue={t.emergency_contact_name ?? ""}
+                    />
+                    <span>Emergency contact name</span>
+                  </label>
+                  <label className="md-field">
+                    <input
+                      name="emergency_contact_phone"
+                      type="tel"
+                      placeholder=" "
+                      defaultValue={t.emergency_contact_phone ?? ""}
+                    />
+                    <span>Emergency contact number</span>
+                  </label>
+                  <button className="md-btn md-btn-filled md-btn-sm">
+                    Save changes
+                  </button>
+                </form>
+
+                {where ? (
+                  <p className="md-muted mt-4 text-sm">
+                    To archive this tenant, move them out of their bed first.
+                  </p>
+                ) : (
+                  <form action={archiveTenant} className="mt-4 flex flex-col gap-2">
+                    <input type="hidden" name="tenant_id" value={t.id} />
+                    <p className="md-muted text-sm">
+                      Archiving hides {t.full_name} from your lists and stops their
+                      private link from working. Past bills and payments are kept.
+                    </p>
+                    <button className="md-btn md-btn-danger md-btn-sm">
+                      Archive tenant
+                    </button>
+                  </form>
+                )}
+              </details>
+
+              <details className="mt-3">
                 <summary className="md-btn md-btn-outlined md-btn-sm">
                   Tenant link
                 </summary>

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { signIn, signUp } from "./actions";
+import { signIn } from "./actions";
 
 type Props = { searchParams: Promise<{ error?: string; message?: string }> };
 
@@ -57,10 +57,16 @@ async function LoginForm({ searchParams }: Props) {
         <button formAction={signIn} className="md-btn md-btn-filled md-btn-block">
           Sign in
         </button>
-        <button formAction={signUp} className="md-btn md-btn-tonal md-btn-block">
+        <Link href="/signup" className="md-btn md-btn-tonal md-btn-block">
           Create account
-        </button>
+        </Link>
       </form>
+
+      <p className="md-muted mt-6 text-center text-sm">
+        <Link href="/terms" className="md-link">Terms</Link>
+        {" · "}
+        <Link href="/privacy" className="md-link">Privacy Notice</Link>
+      </p>
     </main>
   );
 }

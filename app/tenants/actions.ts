@@ -58,3 +58,69 @@ export async function regeneratePortalLink(formData: FormData) {
     `/tenants?message=${encodeURIComponent("New link created. The old link no longer works.")}`
   );
 }
+
+// Change a tenant's name or contact details.
+export async function updateTenant(formData: FormData) {
+  const text = (key: string) => String(formData.get(key) ?? "").trim() || null;
+  const tenantId = String(formData.get("tenant_id") ?? "");
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  if (!tenantId) redirect("/tenants");
+  if (!fullName) redirect("/tenants?error=The tenant's name can't be empty");
+
+  const { supabase } = await requireOrg();
+  const { error } = await supabase
+    .from("tenants")
+    .update({
+      full_name: fullName,
+      phone: text("phone"),
+      email: text("email"),
+      emergency_contact_name: text("emergency_contact_name"),
+      emergency_contact_phone: text("emergency_contact_phone"),
+    })
+    .eq("id", tenantId);
+
+  if (error) redirect(`/tenants?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/tenants");
+  redirect(`/tenants?message=${encodeURIComponent("Tenant updated.")}`);
+}
+
+// Hide a tenant who has left. Their old bills and payments are kept.
+export async function archiveTenant(formData: FormData) {
+  const tenantId = String(formData.get("tenant_id") ?? "");
+  if (!tenantId) redirect("/tenants");
+
+  const { supabase } = await requireOrg();
+
+  const { data: stay } = await supabase
+    .from("occupancies")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .is("move_out_date", null)
+    .limit(1)
+    .maybeSingle();
+  if (stay)
+    redirect(
+      `/tenants?error=${encodeURIComponent("Move this tenant out of their bed first.")}`
+    );
+
+  const { data: owed } = await supabase
+    .from("bill_details")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .in("status", ["unpaid", "partial", "overdue"])
+    .limit(1)
+    .maybeSingle();
+  if (owed)
+    redirect(
+      `/tenants?error=${encodeURIComponent("This tenant still has an unpaid bill. Record or approve their payment first.")}`
+    );
+
+  const { error } = await supabase
+    .from("tenants")
+    .update({ archived: true })
+    .eq("id", tenantId);
+  if (error) redirect(`/tenants?error=${encodeURIComponent(error.message)}`);
+
+  revalidatePath("/tenants");
+  redirect(`/tenants?message=${encodeURIComponent("Tenant archived.")}`);
+}
